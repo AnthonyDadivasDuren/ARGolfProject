@@ -48,7 +48,6 @@ public class GolfRollingResistance : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Contact callbacks refresh this after each physics simulation.
         bool supported = touchingGrass;
         touchingGrass = false;
 

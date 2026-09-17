@@ -23,7 +23,6 @@ public class GolfHole : MonoBehaviour
         if (other.attachedRigidbody != ballBody)
             return;
 
-        // The detector's origin is at the cup opening.
         float localHeight =
             transform.InverseTransformPoint(ballBody.position).y;
 
@@ -50,5 +49,10 @@ public class GolfHole : MonoBehaviour
         {
             settledFor = 0f;
         }
+    }
+
+    public void ResetDetection()
+    {
+        settledFor = 0f;
     }
 }

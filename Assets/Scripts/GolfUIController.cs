@@ -1,6 +1,5 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class GolfUIController : MonoBehaviour
 {
@@ -8,6 +7,7 @@ public class GolfUIController : MonoBehaviour
     [SerializeField] private TMP_Text strokeText;
     [SerializeField] private GameObject completionPanel;
     [SerializeField] private TMP_Text resultText;
+    [SerializeField] private GolfHole hole;
 
     private bool resultShown;
 
@@ -35,6 +35,11 @@ public class GolfUIController : MonoBehaviour
 
     public void RestartGame()
     {
-        SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        hole.ResetDetection();
+        ball.RestartHole();
+
+        resultShown = false;
+        strokeText.text = "Strokes: 0";
+        completionPanel.SetActive(false);
     }
 }

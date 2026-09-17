@@ -15,6 +15,11 @@ public class GolfBallController : MonoBehaviour
     [SerializeField] private Transform courseRoot;
     [SerializeField] private float fallDepth = 0.25f;
 
+    [SerializeField] private float touchRadiusFraction = 0.06f;
+
+    private Vector3 startingLocalPosition;
+    private Quaternion startingLocalRotation;
+
     private Vector3 lastSafeLocalPosition;
     private Quaternion lastSafeLocalRotation;
 
@@ -47,15 +52,24 @@ public class GolfBallController : MonoBehaviour
         body = GetComponent<Rigidbody>();
 
         if (courseRoot != null)
+        {
             SaveSafePosition();
+
+            startingLocalPosition = lastSafeLocalPosition;
+            startingLocalRotation = lastSafeLocalRotation;
+        }
 
         if (aimLine != null)
         {
             aimLine.useWorldSpace = true;
             aimLine.positionCount = 2;
             aimLine.loop = false;
-            aimLine.startWidth = 0.012f;
-            aimLine.endWidth = 0.004f;
+            float courseScale = courseRoot != null
+                 ? Mathf.Abs(courseRoot.lossyScale.x)
+                 : 1f;
+
+            aimLine.startWidth = 0.012f * courseScale;
+            aimLine.endWidth = 0.004f * courseScale;
             aimLine.enabled = false;
         }
     }
@@ -93,7 +107,25 @@ public class GolfBallController : MonoBehaviour
             if (body.linearVelocity.sqrMagnitude > 0.0004f)
                 return;
 
-            if (!ballCollider.Raycast(ray, out _, 100f))
+            Vector3 ballScreenPosition =
+                    aimCamera.WorldToScreenPoint(ballCollider.bounds.center);
+
+            // Don't allow selecting a ball behind the camera.
+            if (ballScreenPosition.z <= 0f)
+                return;
+
+            float touchRadius =
+                Mathf.Min(Screen.width, Screen.height) * touchRadiusFraction;
+
+            Vector2 pointerPosition = pointer.position.ReadValue();
+            Vector2 ballPosition = new Vector2(
+                ballScreenPosition.x, ballScreenPosition.y);
+
+            bool touchedBall = ballCollider.Raycast(ray, out _, 100f);
+            bool touchedNearBall =
+                Vector2.Distance(pointerPosition, ballPosition) <= touchRadius;
+
+            if (!touchedBall && !touchedNearBall)
                 return;
 
             aimPlane = new Plane(Vector3.up, body.position);
@@ -124,12 +156,17 @@ public class GolfBallController : MonoBehaviour
 
         bool validShot = drag.magnitude >= 0.01f;
 
-        // Preview the same direction and power used for the shot.
+        
         if (aimLine != null)
         {
             aimLine.enabled = validShot;
 
-            Vector3 start = body.position + Vector3.up * 0.005f;
+            float courseScale = courseRoot != null
+                    ? Mathf.Abs(courseRoot.lossyScale.x)
+                    : 1f;
+
+            Vector3 start =
+                body.position + Vector3.up * (0.005f * courseScale);
             Vector3 end = start
                 + drag.normalized * power * maxLineLength;
 
@@ -156,7 +193,6 @@ public class GolfBallController : MonoBehaviour
             StrokeCount++;
             Debug.Log($"Strokes: {StrokeCount}");
 
-            // Start with matching rolling motion instead of sliding.
             float radius = ballCollider.bounds.extents.y;
 
             body.angularVelocity =
@@ -208,6 +244,29 @@ public class GolfBallController : MonoBehaviour
 
         body.rotation =
             courseRoot.rotation * lastSafeLocalRotation;
+
+        body.WakeUp();
+    }
+
+    public void RestartHole()
+    {
+        CancelAim();
+
+        HoleComplete = false;
+        StrokeCount = 0;
+
+        body.isKinematic = false;
+        body.linearVelocity = Vector3.zero;
+        body.angularVelocity = Vector3.zero;
+
+        lastSafeLocalPosition = startingLocalPosition;
+        lastSafeLocalRotation = startingLocalRotation;
+
+        body.position =
+            courseRoot.TransformPoint(startingLocalPosition);
+
+        body.rotation =
+            courseRoot.rotation * startingLocalRotation;
 
         body.WakeUp();
     }
