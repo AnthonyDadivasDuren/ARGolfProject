@@ -9,52 +9,85 @@ public class GolfRollingResistance : MonoBehaviour
     [SerializeField] private float stopSpeed = 0.02f;
 
     private Rigidbody body;
-    private SphereCollider sphere;
+    private bool touchingGrass;
 
     private void Awake()
     {
         body = GetComponent<Rigidbody>();
-        sphere = GetComponent<SphereCollider>();
-
         body.maxAngularVelocity = 150f;
+    }
+
+    private void OnCollisionEnter(Collision collision)
+    {
+        CheckGrassContact(collision);
+    }
+
+    private void OnCollisionStay(Collision collision)
+    {
+        CheckGrassContact(collision);
+    }
+
+    private void CheckGrassContact(Collision collision)
+    {
+        int layer = collision.gameObject.layer;
+
+        if ((grassLayers.value & (1 << layer)) == 0)
+            return;
+
+        for (int i = 0; i < collision.contactCount; i++)
+        {
+            ContactPoint contact = collision.GetContact(i);
+
+            if (Vector3.Dot(contact.normal, Vector3.up) > 0.9f)
+            {
+                touchingGrass = true;
+                return;
+            }
+        }
     }
 
     private void FixedUpdate()
     {
-        Vector3 centre = sphere.bounds.center;
-        float radius = sphere.bounds.extents.y;
+        // Contact callbacks refresh this after each physics simulation.
+        bool supported = touchingGrass;
+        touchingGrass = false;
 
-        bool onGrass = Physics.Raycast(
-            centre,
-            Vector3.down,
-            out RaycastHit hit,
-            radius + 0.003f,
-            grassLayers,
-            QueryTriggerInteraction.Ignore);
-
-        if (!onGrass || Vector3.Dot(hit.normal, Vector3.up) < 0.9f)
+        if (body.IsSleeping() || !supported)
             return;
 
         Vector3 velocity = body.linearVelocity;
-
         Vector3 horizontal = new Vector3(velocity.x, 0f, velocity.z);
         float speed = horizontal.magnitude;
-
-        if (speed == 0f)
-            return;
 
         float newSpeed = Mathf.Max(
             0f, speed - deceleration * Time.fixedDeltaTime);
 
-        if (newSpeed < stopSpeed)
-            newSpeed = 0f;
+        if (newSpeed <= stopSpeed)
+        {
+            body.linearVelocity = new Vector3(0f, velocity.y, 0f);
+            body.angularVelocity = Vector3.zero;
+
+            if (Mathf.Abs(velocity.y) < 0.05f)
+            {
+                body.linearVelocity = Vector3.zero;
+                body.Sleep();
+            }
+
+            return;
+        }
 
         float ratio = newSpeed / speed;
-        horizontal *= ratio;
 
         body.linearVelocity = new Vector3(
-            horizontal.x, velocity.y, horizontal.z);
+            horizontal.x * ratio,
+            velocity.y,
+            horizontal.z * ratio);
 
         body.angularVelocity *= ratio;
+    }
+
+    private void OnDisable()
+    {
+        touchingGrass = false;
     }
 }
