@@ -1,0 +1,57 @@
+AR GOLF — STARTER ASSET KIT
+
+Original simple meshes generated for this project. You may use, modify, and
+redistribute these assets, including in your assignment and GitHub repository.
+No external textures or downloaded models are included.
+
+FORMAT AND SIZE
+OBJ models with a shared MTL material file. Dimensions are in meters; Y is up.
+Turf top surfaces are at local Y = 0. Borders and obstacles rest on Y = 0.
+The ball is centered at its origin, diameter 0.043 m, with geometric dimples.
+This is an asset kit, not a Unity package: no scripts, colliders, physics,
+prefabs, AR placement, scoring, or gameplay are included.
+
+IMPORT
+1. Extract the ZIP outside your Unity project.
+2. In Unity's Project panel, create Assets/Art/GolfKit.
+3. Drag all OBJ files and GolfMaterials.mtl into that folder together.
+4. Drag a model from the Project panel into the scene to use it.
+5. Keep model scale at 1. Check that the 60cm tile measures 0.6 Unity units.
+Material import varies by render pipeline. If a model is white or pink,
+create Unity materials using your project's URP/Lit shader, choose the colors
+listed below, and assign them to the model's renderer material slots.
+Do not scale the whole course to fix one incorrectly imported model.
+
+SUGGESTED TWO-TILE COURSE
+Create an empty GolfCourse parent with zero position/rotation and unit scale.
+Use the following LOCAL positions (X,Y,Z) under that parent:
+Turf_Tile_60cm:            (0,0,-0.3)
+Turf_Hole_Tile_60cm:       (0,0, 0.3)
+Border_Straight_60cm:      (-0.3,0,-0.3), rotation Y = 90
+Border_Straight_60cm:      (-0.3,0, 0.3), rotation Y = 90
+Border_Straight_60cm:      ( 0.3,0,-0.3), rotation Y = 90
+Border_Straight_60cm:      ( 0.3,0, 0.3), rotation Y = 90
+Border_Straight_60cm:      (0,0,-0.6)
+Border_Straight_60cm:      (0,0, 0.6)
+Obstacle_Block:           (0,0,0)
+Golf_Ball_43mm:            (0,0.022,-0.45)
+Flag_And_Pole:            (0,0,0.35)
+The hole center is (0,0,0.3). The flag is deliberately behind the cup.
+Disable your existing flat block when assembling this version: otherwise it
+would cover the cup opening. Turf_Full_60x120cm is an alternative solid base,
+not an additional layer underneath the two tiles.
+
+PHYSICS TO ADD LATER, WITH GUIDANCE
+Use Box Colliders for simple solid pieces. The hole tile needs a non-convex
+Mesh Collider on a stationary course; a Box Collider would seal the opening.
+The ball needs a Sphere Collider (radius 0.0215 at unit scale) and Rigidbody.
+Keep the flag decorative. Hole scoring will need a separate trigger and code.
+If you move/reposition the course, pause/reset gameplay first.
+
+COLORS (approximate RGB, 0-255)
+Turf: 41,143,61. Edge: 222,191,130. Obstacle: 41,99,133.
+Ball: 245,247,250. Pole: 184,196,204. Flag: 245,61,48. Cup: 9,14,11.
+
+VALIDATION
+Mesh indices and dimensions checked during generation. Assets have not been
+imported into Unity or tested on your phone. Your Unity project was not edited.
