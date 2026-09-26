@@ -247,6 +247,15 @@ public class GolfBallController : MonoBehaviour
 
         body.WakeUp();
     }
+    
+    public void SetStartPoint(Transform startPoint)
+    {
+        startingLocalPosition =
+            courseRoot.InverseTransformPoint(startPoint.position);
+
+        startingLocalRotation =
+            Quaternion.Inverse(courseRoot.rotation) * startPoint.rotation;
+    }
 
     public void RestartHole()
     {

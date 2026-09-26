@@ -7,7 +7,8 @@ public class GolfUIController : MonoBehaviour
     [SerializeField] private TMP_Text strokeText;
     [SerializeField] private GameObject completionPanel;
     [SerializeField] private TMP_Text resultText;
-    [SerializeField] private GolfHole hole;
+    [SerializeField] private GolfLevelManager levelManager;
+    [SerializeField] private GameObject nextLevelButton;
 
     private bool resultShown;
 
@@ -26,8 +27,13 @@ public class GolfUIController : MonoBehaviour
             resultShown = true;
 
             string label = ball.StrokeCount == 1 ? "stroke" : "strokes";
-            resultText.text =
-                $"Hole complete!\n{ball.StrokeCount} {label}";
+            bool moreLevels = !levelManager.IsLastLevel;
+
+            nextLevelButton.SetActive(moreLevels);
+
+            resultText.text = moreLevels
+                ? $"Hole {levelManager.CurrentIndex + 1} complete!\n{ball.StrokeCount} {label}"
+                : $"Course complete!\n{ball.StrokeCount} {label}";
 
             completionPanel.SetActive(true);
         }
@@ -35,9 +41,18 @@ public class GolfUIController : MonoBehaviour
 
     public void RestartGame()
     {
-        hole.ResetDetection();
-        ball.RestartHole();
+        levelManager.RestartLevel();
+        ResetUI();
+    }
 
+    public void NextLevel()
+    {
+        levelManager.NextLevel();
+        ResetUI();
+    }
+
+    private void ResetUI()
+    {
         resultShown = false;
         strokeText.text = "Strokes: 0";
         completionPanel.SetActive(false);
